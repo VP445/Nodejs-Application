@@ -1,0 +1,59 @@
+# This docker-compose file will be used for PUSH onto the DEV Branch.
+version: '3.7'
+networks:
+   gateway: {}
+
+services:
+  node:
+    restart: always
+    image: node_docker:0.1
+    container_name: node_docker
+    hostname: node_docker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mongo
+      - mysql
+    links:
+        - mongo
+        - mysql
+    networks:
+      - gateway
+    ports:
+      - "8080:8080"
+      - "51005:51005"
+      - "80:80"
+      - "443:443"
+
+  mongo:
+    restart: always
+    image: mongo:latest
+    hostname: mongo
+    container_name: mongo
+    depends_on:
+      - mysql
+    networks:
+      - gateway
+    depends_on:
+      - mysqldb
+    ports:
+      - "27017:27017"
+    volumes:
+      - '/mongo-data:/data/db'
+
+  mysqldb:
+    restart: always
+    image: mysql:5.7.24
+    hostname: mysqldb
+    container_name: mysqldb
+    networks:
+      - gateway
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=mysql
+    ports:
+      - "3306:3306"
+      - "33060:33060"
+    volumes:
+      -  '/mysql-data:/var/lib/mysql'
